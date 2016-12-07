@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giffy</title>
+    <style>
+        html {
+            background-image: none;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        
+        body {
+            height: 100%;
+        }
+    </style>
+    <script>alert('missing gifs');</script>
+</head>
+
+<body>&nbsp;</body>
+<script>
+        if (gifs) {
+            setInterval(function() {
+                window.location.href = window.location.href;
+            }, 30*60*1000);
+           document.documentElement.style.backgroundImage = 'url(cache/' + gifs[Math.floor(Math.random()*gifs.length)] + ')';
+        }
+</script>
+
+</html>
