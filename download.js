@@ -34,14 +34,14 @@ request(gist, (err, resp, body) => {
                 return;
             }
 
-            request(url)
-                .on('response', (err) => {
-                    bar.tick();
-                    cache.push(filename);
+            let stream = request(url).pipe(fs.createWriteStream(cacheFolder + filename));
 
-                    if (bar.complete) createViewer(cache);
-                })
-                .pipe(fs.createWriteStream(cacheFolder + filename));
+            stream.on('finish', () => {
+                bar.tick();
+                cache.push(filename);
+
+                if (bar.complete) createViewer(cache);
+            });
         });
     }, this);
 });
@@ -54,14 +54,10 @@ var createViewer = function(cache) {
     fs.writeFileSync(viewerRendered, template.toString().replace(search, replace));
     console.log('Viewer generated: ' + viewerRendered);
 
-    deleteRemovedImages(cache, () => {
-        process.exit(0);
-    });
+    deleteRemovedImages(cache);
 }
 
-var deleteRemovedImages = function(cache, cb) {
-    if (!cb) cb = Function.prototype;
-
+var deleteRemovedImages = function(cache) {
     let pattern = [];
 
     cache.forEach((entry, index) => {
@@ -70,7 +66,6 @@ var deleteRemovedImages = function(cache, cb) {
         if ((cache.length - 1) === index) {
             del([cacheFolder + '*.gif'].concat(pattern)).then(paths => {
                 if (paths.length > 0) console.log(util.format('Deleted %d removed images...', paths.length));
-                cb();
             });
         }
     });
