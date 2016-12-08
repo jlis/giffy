@@ -2,45 +2,76 @@ var request = require('request'),
     crypto = require('crypto'),
     fs = require('fs'),
     ProgressBar = require('progress'),
-    del = require('del'),
-    util = require('util');
+    util = require('util'),
+    del = require('del');
 
 var gist = 'https://gist.githubusercontent.com/jlis/2ae7edc5b628771e8ee6da210eb25b58/raw?' + Math.floor(Date.now() / 1000);
 var cacheFolder = './cache/';
 var viewerTemplate = './viewer_template.html';
 var viewerRendered = './viewer.html';
 
-del([cacheFolder + '*.gif', viewerRendered]).then(paths => {
-    console.log('Purged the cache...');
-    console.log('Start downloading from: ' + gist);
+console.log('Start downloading from: ' + gist);
 
-    request(gist, (err, resp, body) => {
-        if (err) throw err;
+request(gist, (err, resp, body) => {
+    if (err) throw err;
 
-        let cache = [];
-        let json = JSON.parse(body);
+    let cache = [];
+    let json = JSON.parse(body);
 
-        let bar = new ProgressBar('Downloading [:bar] :current/:total', { total: json.length });
+    let bar = new ProgressBar('Downloading [:bar] :current/:total', {
+        total: json.length
+    });
 
-        json.forEach(function (url, index) {
-            let filename = crypto.createHash('md5').update(url).digest('hex') + '.gif';
+    json.forEach((url, index) => {
+        let filename = crypto.createHash('md5').update(url).digest('hex') + '.gif';
+        fs.exists(cacheFolder + filename, (exists) => {
+            if (exists) {
+                bar.tick();
+                cache.push(filename);
+
+                if (bar.complete) createViewer(cache);
+
+                return;
+            }
+
             request(url)
                 .on('response', (err) => {
                     bar.tick();
                     cache.push(filename);
 
-                    if (bar.complete) {
-                        let template = fs.readFileSync(viewerTemplate);
-                        let search = 'alert(\'missing gifs\');';
-                        let replace = util.format('var gifs = %s;', JSON.stringify(cache));
-        
-                        fs.writeFileSync(viewerRendered, template.toString().replace(search, replace));
-                        console.log('Viewer generated: ' + viewerRendered);
-                    }
+                    if (bar.complete) createViewer(cache);
                 })
                 .pipe(fs.createWriteStream(cacheFolder + filename));
-        }, this);
-    });
+        });
+    }, this);
 });
 
+var createViewer = function(cache) {
+    let template = fs.readFileSync(viewerTemplate);
+    let search = 'alert(\'missing gifs\');';
+    let replace = util.format('var gifs = %s;', JSON.stringify(cache));
 
+    fs.writeFileSync(viewerRendered, template.toString().replace(search, replace));
+    console.log('Viewer generated: ' + viewerRendered);
+
+    deleteRemovedImages(cache, () => {
+        process.exit(0);
+    });
+}
+
+var deleteRemovedImages = function(cache, cb) {
+    if (!cb) cb = Function.prototype;
+
+    let pattern = [];
+
+    cache.forEach((entry, index) => {
+        pattern.push('!' + cacheFolder + entry);
+
+        if ((cache.length - 1) === index) {
+            del([cacheFolder + '*.gif'].concat(pattern)).then(paths => {
+                if (paths.length > 0) console.log(util.format('Deleted %d removed images...', paths.length));
+                cb();
+            });
+        }
+    });
+}
