@@ -1,5 +1,4 @@
 var request = require('request'),
-    crypto = require('crypto'),
     fs = require('fs'),
     ProgressBar = require('progress'),
     util = require('util'),
@@ -23,7 +22,7 @@ request(gist, (err, resp, body) => {
     });
 
     json.forEach((url, index) => {
-        let filename = crypto.createHash('md5').update(url).digest('hex') + '.gif';
+        let filename = slugify(url) + '.gif';
         fs.exists(cacheFolder + filename, (exists) => {
             if (exists) {
                 bar.tick();
@@ -69,4 +68,9 @@ var deleteRemovedImages = function(cache) {
             });
         }
     });
+}
+
+var slugify = function(url) {
+    url = url.replace(/https?:\/\//g, '');
+    return url.replace(/[.\/]/g, '-');
 }
