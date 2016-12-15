@@ -8,30 +8,45 @@
     <title>Giffy</title>
     <style>
         html {
-            background-image: none;
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-attachment: fixed;
-            background-size: cover;
             cursor: none;
             overflow: hidden;
         }
-        
+
         body {
             height: 100%;
         }
+
+        video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -100;
+            -ms-transform: translateX(-50%) translateY(-50%);
+            -moz-transform: translateX(-50%) translateY(-50%);
+            -webkit-transform: translateX(-50%) translateY(-50%);
+            transform: translateX(-50%) translateY(-50%);
+            background: url(polina.jpg) no-repeat;
+            background-size: cover;
+        }
     </style>
-    <script>alert('missing gifs');</script>
+    <script>
+        alert('missing files');
+    </script>
 </head>
 
 <body>&nbsp;</body>
 <script>
-        if (gifs) {
-            setInterval(function() {
-                window.location.href = window.location.href;
-            }, 30*60*1000);
-           document.documentElement.style.backgroundImage = 'url(cache/' + gifs[Math.floor(Math.random()*gifs.length)] + ')';
-        }
+    if (files && files.length) {
+        setInterval(function() {
+            window.location.href = window.location.href;
+        }, 30 * 60 * 1000);
+        var file = files[Math.floor(Math.random() * files.length)];
+        document.body.innerHTML = '<video playsinline autoplay muted loop><source src="cache/' + file + '" type="video/mp4"></video>';
+    }
 </script>
 
 </html>

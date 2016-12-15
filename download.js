@@ -22,7 +22,8 @@ request(gist, (err, resp, body) => {
     });
 
     json.forEach((url, index) => {
-        let filename = slugify(url) + '.gif';
+        url = url.replace('.gif', '.mp4');
+        let filename = slugify(url) + '.mp4';
         fs.exists(cacheFolder + filename, (exists) => {
             if (exists) {
                 bar.tick();
@@ -47,8 +48,8 @@ request(gist, (err, resp, body) => {
 
 var createViewer = function(cache) {
     let template = fs.readFileSync(viewerTemplate);
-    let search = 'alert(\'missing gifs\');';
-    let replace = util.format('var gifs = %s;', JSON.stringify(cache));
+    let search = 'alert(\'missing files\');';
+    let replace = util.format('var files = %s;', JSON.stringify(cache));
 
     fs.writeFileSync(viewerRendered, template.toString().replace(search, replace));
     console.log('Viewer generated: ' + viewerRendered);
@@ -63,8 +64,8 @@ var deleteRemovedImages = function(cache) {
         pattern.push('!' + cacheFolder + entry);
 
         if ((cache.length - 1) === index) {
-            del([cacheFolder + '*.gif'].concat(pattern)).then(paths => {
-                if (paths.length > 0) console.log(util.format('Deleted %d removed images...', paths.length));
+            del([cacheFolder + '*.mp4'].concat(pattern)).then(paths => {
+                if (paths.length > 0) console.log(util.format('Deleted %d removed files...', paths.length));
             });
         }
     });
